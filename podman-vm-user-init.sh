@@ -2,7 +2,7 @@
 
 # Podman Virtual Machine User Initialization Shell Script
 # Copyright ©️ 2026 Marco Barrios. All rights reserved.
-# Creates a rootless user
+# Creates an user without admin priviledges
 # podman-vm-user-init.sh
 
 # Enable strict error handling (the script will stop immediately if a variable is not set or a command fails)
