@@ -39,18 +39,16 @@ podman_vm_socket_init() {
 
     elif test "$OPERATING_SYSTEM" = "ubuntu"; then
 
-      # The following commands must be run as the rootless user
-
       # Enable lingering 
       # (allows the user to run user-level systemd services even when not logged in)
       echo "Enabling lingering for user $USER_NAME...";
-      sudo -u "$USER_NAME" loginctl enable-linger "$USER_NAME";
+      loginctl enable-linger "$USER_NAME";
 
-      # Enable Podman socket in user context
+      # Enable Podman socket in user context (the command must be run as the rootless user)
       echo "Enabling Podman socket for user $USER_NAME...";
       sudo -u "$USER_NAME" systemctl --user enable podman.socket;
 
-      # Start Podman socket in user context
+      # Start Podman socket in user context (the command must be run as the rootless user)
       echo "Starting Podman socket for user $USER_NAME...";
       sudo -u "$USER_NAME" systemctl --user start podman.socket;
 
