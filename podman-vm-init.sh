@@ -221,7 +221,7 @@ podman_vm_init() {
   fi
 
   # Execute socket initialization script as the Podman user (passes the user name as an environment variable to the script)
-  sudo -u "$USERNAME" env \
+  sudo -u "$USER_NAME" env \
     USER_NAME="$USER_NAME" \
     sh "$SOCKET_INIT_SCRIPT";
 
@@ -244,7 +244,7 @@ podman_vm_init() {
   fi
 
   # Execute Podman initialization script as the Podman user (passes domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, secrets, and temporary scripts directory as environment variables to the script)
-  sudo -u "$USERNAME" env \
+  sudo -u "$USER_NAME" env \
     DOMAIN="$DOMAIN" \
     HOST_DATA_DIR="$HOST_DATA_DIR" \
     USER_NAME="$USER_NAME" \
