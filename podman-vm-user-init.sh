@@ -88,7 +88,7 @@ podman_vm_user_init() {
     echo "Setting SSH public keys...";
 
     # Create SSH directory
-    sudo mkdir -p "/home/$USER_NAME/.ssh";
+    mkdir -p "/home/$USER_NAME/.ssh";
     
     # Add the public key to the authorized keys file
     echo "ssh-ed25519 $USER_KEY $USER_NAME" > "/home/$USER_NAME/.ssh/authorized_keys";
