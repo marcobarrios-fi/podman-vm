@@ -85,7 +85,7 @@ podman_vm_init() {
 
   # Pods, containers, and secrets are optional
 
-  ### Hostname Configuration
+  ### Hostname
 
   # Set hostname
   echo "Setting hostname to $HOST_NAME...";
@@ -96,7 +96,7 @@ podman_vm_init() {
   echo "Setting host domain name to $HOST_DOMAIN_NAME...";
   echo "127.0.1.1 $HOST_DOMAIN_NAME $HOST_NAME" >> '/etc/hosts';
 
-  ### Host Data Directory Configuration
+  ### Host Data Directory
 
   # Create host data directory if it does not exist
   if test ! -d "$HOST_DATA_DIR"; then
@@ -109,7 +109,7 @@ podman_vm_init() {
     echo "$(tput bold)$(tput setaf 1)Error: Host data directory does not exist.$(tput sgr0)" && exit 1;
   fi
 
-  # Temporary scripts directory
+  ### Temporary Scripts Directory
 
   # Create temporary scripts directory
   echo "Creating temporary scripts directory...";
@@ -117,16 +117,22 @@ podman_vm_init() {
 
   # Verify that the temporary scripts directory was successfully created
   if test ! -d "$TEMP_SCRIPTS_DIR"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Could not create temporary scripts directory.$(tput sgr0)" && exit 1;
+    echo "$(tput bold)$(tput setaf 1)Error: Temporary scripts directory could not be created.$(tput sgr0)" && exit 1;
   fi
+
+  # Display temporary scripts directory
+  echo "Temporary scripts directory:"
+  echo "$(tput bold)$(tput setaf 4)$TEMP_SCRIPTS_DIR$(tput sgr0)";
 
   ### Packages
 
   echo "Installing packages...";
 
   if test "$OPERATING_SYSTEM" = "alpine"; then
+    
     # Update package list and upgrade packages
     apk update && apk upgrade --no-cache;
+    
     # Install envsubst
     apk add --no-cache gettext-envsubst;
     # Install git
@@ -135,9 +141,12 @@ podman_vm_init() {
     apk add --no-cache jq;
     # Install Podman
     apk add --no-cache podman;
+
   elif test "$OPERATING_SYSTEM" = "ubuntu"; then
+
     # Update package list and upgrade packages
     apt update --assume-yes && apt upgrade --assume-yes;
+    
     # Install envsubst
     apt install --assume-yes gettext-base;
     # Install git
@@ -146,6 +155,7 @@ podman_vm_init() {
     apt install --assume-yes jq;
     # Install Podman
     apt install --assume-yes podman;
+
   fi
 
   ### User Initialization
@@ -159,11 +169,15 @@ podman_vm_init() {
 
   # Verify that the user initialization script was successfully downloaded
   if test ! -f "$USER_INIT_SCRIPT"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Could not downlaod user initialization script.$(tput sgr0)" && exit 1;
+    echo "$(tput bold)$(tput setaf 1)Error: User initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
   # Execute user initialization script (passes the username, user ID, and user pubic SSH key as environment variables to the script)
-  USER_NAME="$USER_NAME" USER_ID="$USER_ID" USER_KEY="$USER_KEY" sh "$USER_INIT_SCRIPT";
+  env \
+    USER_NAME="$USER_NAME" \
+    USER_ID="$USER_ID" \
+    USER_KEY="$USER_KEY" \
+    sh "$USER_INIT_SCRIPT";
 
   # Delete user initialization script
   echo "Deleting user initialization script...";
@@ -180,7 +194,7 @@ podman_vm_init() {
 
   # Verify that the rootless initialization was successfully downloaded
   if test ! -f "$ROOTLESS_INIT_SCRIPT"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Could not download rootless initialization script.$(tput sgr0)" && exit 1;
+    echo "$(tput bold)$(tput setaf 1)Error: Rootless initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
   # Execute rootless initialization script (passes the username as environment variables to the script)
@@ -191,6 +205,29 @@ podman_vm_init() {
   rm "$ROOTLESS_INIT_SCRIPT";
 
   echo "$(tput bold)$(tput setaf 2)Virtual machine initialization completed.$(tput sgr0)";
+
+  ### Socket
+
+  # Socket initialization script
+  SOCKET_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/podman-vm-socket-init.sh";
+
+  # Download socket initialization script
+  echo "Downloading socket initialization script...";
+  curl --fail --location --silent --output "$SOCKET_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-vm-socket-init.sh';
+
+  # Verify that the socket initialization script was successfully downloaded
+  if test ! -f "$SOCKET_INIT_SCRIPT"; then
+    echo "$(tput bold)$(tput setaf 1)Error: Socket initialization script could not be downloaded.$(tput sgr0)" && exit 1;
+  fi
+
+  # Execute socket initialization script as the Podman user (passes the user name as an environment variable to the script)
+  sudo -u USERNAME env \
+    USER_NAME="$USER_NAME" \
+    sh "$SOCKET_INIT_SCRIPT";
+
+  # Delete socket initialization script
+  echo "Deleting socket initialization script...";
+  rm "$SOCKET_INIT_SCRIPT";
 
   ### Pods and Containers Initialization
 
@@ -203,16 +240,32 @@ podman_vm_init() {
 
   # Verify that the Podman initialization script was successfully downloaded
   if test ! -f "$PODMAN_INIT_SCRIPT"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Could not download Podman initialization script.$(tput sgr0)" && exit 1;
+    echo "$(tput bold)$(tput setaf 1)Error: Podman initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
-  # Execute Podman initialization script (passes domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, and secrets as environment variables to the script)
-  DOMAIN="$DOMAIN" HOST_DATA_DIR="$HOST_DATA_DIR" USER_NAME="$USER_NAME" GITHUB_REPO="$GITHUB_REPO" GITHUB_REPO_TOKEN="$GITHUB_REPO_TOKEN" PODS="$PODS" CONTAINERS="$CONTAINERS" SECRETS="$SECRETS" sh "$PODMAN_INIT_SCRIPT";
+  # Execute Podman initialization script as the Podman user (passes domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, secrets, and temporary scripts directory as environment variables to the script)
+  sudo -u USERNAME env \
+    DOMAIN="$DOMAIN" \
+    HOST_DATA_DIR="$HOST_DATA_DIR" \
+    USER_NAME="$USER_NAME" \
+    GITHUB_REPO="$GITHUB_REPO" \
+    GITHUB_REPO_TOKEN="$GITHUB_REPO_TOKEN" \
+    PODS="$PODS" \
+    CONTAINERS="$CONTAINERS" \
+    SECRETS="$SECRETS" \
+    TEMP_SCRIPTS_DIR="$TEMP_SCRIPTS_DIR" \
+    sh "$PODMAN_INIT_SCRIPT"
 
-  # Switch to the user and execute the Podman initialization script
-  echo "Switching to user $USER_NAME and executing Podman initialization script...";
-  
-  # su - "$USER_NAME" -c 'podman-init';
+  # Delete Podman initialization script
+  echo "Deleting Podman initialization script...";
+  rm "$PODMAN_INIT_SCRIPT";
+
+  ### Clear
+
+  # Remove temporary scripts directory
+  echo "Removing temporary scripts directory...";
+  # rm --recursive --force "$TEMP_SCRIPTS_DIR";
+  rm -rf "$TEMP_SCRIPTS_DIR";
 
 }
 
