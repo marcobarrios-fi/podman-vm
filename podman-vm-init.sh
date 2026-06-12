@@ -198,7 +198,9 @@ podman_vm_init() {
   fi
 
   # Execute rootless initialization script (passes the username as environment variables to the script)
-  USER_NAME="$USER_NAME" sh "$ROOTLESS_INIT_SCRIPT";
+  env \
+    USER_NAME="$USER_NAME" \
+    sh "$ROOTLESS_INIT_SCRIPT";
 
   # Delete rootless initialization script
   echo "Deleting rootless initialization script...";
