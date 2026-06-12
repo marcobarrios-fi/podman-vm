@@ -38,19 +38,11 @@ podman_init() {
     echo "$(tput bold)$(tput setaf 1)Error: GitHub repository access token is not specified.$(tput sgr0)" && exit 1;
   fi
 
-  # Verify that pods are specified
-  if test ! -n "$PODS"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Pods are not specified.$(tput sgr0)" && exit 1;
-  fi
+  # Pods, containers, and secrets are optional
 
-  # Verify that containers are specified
-  if test ! -n "$CONTAINERS"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Containers are not specified.$(tput sgr0)" && exit 1;
-  fi
-
-  # Verify that secrets are specified
-  if test ! -n "$SECRETS"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Secrets are not specified.$(tput sgr0)" && exit 1;
+  # Verify that the temporary scripts directory is specified
+  if test ! -n "$TEMP_SCRIPTS_DIR"; then
+    echo "$(tput bold)$(tput setaf 1)Error: Temporary scripts directory is not specified.$(tput sgr0)" && exit 1;
   fi
 
   ### Temporary Configuration Directory
@@ -59,9 +51,9 @@ podman_init() {
   echo "Creating temporary configuration directory...";
   TEMP_CONFIG_DIR=$(mktemp --directory);
 
-  # Verify that the temporary configuration directory exists
+  # Verify that the temporary configuration was successfully created
   if test ! -d "$TEMP_CONFIG_DIR"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Temporary configuration directory does not exist.$(tput sgr0)" && exit 1;
+    echo "$(tput bold)$(tput setaf 1)Error: Temporary configuration directory could not be created.$(tput sgr0)" && exit 1;
   fi
 
   # Display temporary configuration directory
@@ -74,43 +66,24 @@ podman_init() {
 
   echo "$(tput bold)$(tput setaf 2)Downloading configuration files completed.$(tput sgr0)";
 
-  ### Socket
-
-  # Socket initialization script
-  SOCKET_INIT_SCRIPT="$HOST_DATA_DIR/scripts/podman-socket-init.sh";
-
-  # Download socket initialization script
-  echo "Downloading socket initialization script...";
-  curl --fail --silent --output "$SOCKET_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-socket-init.sh';
-
-  # Verify that the socket initialization script exists
-  if test ! -f "$SOCKET_INIT_SCRIPT"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Socket initialization script does not exist.$(tput sgr0)" && exit 1;
-  fi
-
-  # Execute socket initialization script (passes the user name as an environment variable to the script)
-  USER_NAME="$USER_NAME" sh "$SOCKET_INIT_SCRIPT";
-
-  # Delete socket initialization script
-  echo "Deleting socket initialization script...";
-  rm "$SOCKET_INIT_SCRIPT";
-
   ### Secrets
 
   # Secrets initialization script
-  SECRETS_INIT_SCRIPT="$HOST_DATA_DIR/scripts/podman-secrets-init.sh";
+  SECRETS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/podman-secrets-init.sh";
 
   # Download secrets initialization script
   echo "Downloading secrets initialization script...";
-  curl --fail --silent --output "$SECRETS_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-secrets-init.sh';
+  curl --fail --location --silent --output "$SECRETS_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-secrets-init.sh';
 
-  # Verify that the secrets initialization script exists
+  # Verify that the secrets initialization script was successfully downloaded
   if test ! -f "$SECRETS_INIT_SCRIPT"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Secrets initialization script does not exist.$(tput sgr0)" && exit 1;
+    echo "$(tput bold)$(tput setaf 1)Error: Secrets initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
   # Execute secrets initialization script (passes secrets as an environment variable to the script)
-  SECRETS="$SECRETS" sh "$SECRETS_INIT_SCRIPT";
+  env \
+    SECRETS="$SECRETS" \
+    sh "$SECRETS_INIT_SCRIPT";
 
   # Delete secrets initialization script
   echo "Deleting secrets initialization script...";
@@ -119,37 +92,47 @@ podman_init() {
   ### Pods
 
   # Pods initialization script
-  PODS_INIT_SCRIPT="$HOST_DATA_DIR/scripts/podman-pods-init.sh";
+  PODS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/podman-pods-init.sh";
 
   # Download pods initialization script
   echo "Downloading pods initialization script...";
   curl --fail --silent --output "$PODS_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-pods-init.sh';
 
-  # Verify that the pods initialization script exists
+  # Verify that the pods initialization script was successfully downloaded
   if test ! -f "$PODS_INIT_SCRIPT"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Pods initialization script does not exist.$(tput sgr0)" && exit 1;
+    echo "$(tput bold)$(tput setaf 1)Error: Pods initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
-  # Execute pods initialization script
-  # (passes the domain, host data directory, pods list, and temporary configuration directory as environment variables to the script)
-  DOMAIN="$DOMAIN" HOST_DATA_DIR="$HOST_DATA_DIR" PODS="$PODS" TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" sh "$PODS_INIT_SCRIPT";
+  # Execute pods initialization script (passes the domain, host data directory, pods list, and temporary configuration directory as environment variables to the script)
+  env \
+    DOMAIN="$DOMAIN" \
+    HOST_DATA_DIR="$HOST_DATA_DIR" \
+    PODS="$PODS" \
+    TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" \
+    sh "$PODS_INIT_SCRIPT";
 
   ### Containers
 
   # Containers initialization script
-  CONTAINERS_INIT_SCRIPT="$HOST_DATA_DIR/scripts/podman-containers-init.sh";
+  CONTAINERS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/podman-containers-init.sh";
 
   # Download containers initialization script
   echo "Downloading containers initialization script...";
   curl --fail --silent --output "$CONTAINERS_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-containers-init.sh';
 
-  # Verify that the containers initialization script exists
+  # Verify that the containers initialization script was successfully downloaded
   if test ! -f "$CONTAINERS_INIT_SCRIPT"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Containers initialization script does not exist.$(tput sgr0)" && exit 1;
+    echo "$(tput bold)$(tput setaf 1)Error: Containers initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
   # Execute containers initialization script (passes the domain, host data directory, containers list, temporary configuration directory, and pod name as environment variables to the script)
-  DOMAIN="$DOMAIN" HOST_DATA_DIR="$HOST_DATA_DIR" CONTAINERS="$CONTAINERS" TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" POD="" sh "$CONTAINERS_INIT_SCRIPT";
+  env \
+    DOMAIN="$DOMAIN" \
+    HOST_DATA_DIR="$HOST_DATA_DIR" \ 
+    CONTAINERS="$CONTAINERS" \
+    TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" \
+    POD="" \
+    sh "$CONTAINERS_INIT_SCRIPT";
 
   ### Clear
 
