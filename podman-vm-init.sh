@@ -205,9 +205,7 @@ podman_vm_init() {
   # Delete rootless initialization script
   echo "Deleting rootless initialization script...";
   rm "$ROOTLESS_INIT_SCRIPT";
-
-  echo "$(tput bold)$(tput setaf 2)Virtual machine initialization completed.$(tput sgr0)";
-
+  
   ### Socket
 
   # Socket initialization script
@@ -223,7 +221,7 @@ podman_vm_init() {
   fi
 
   # Execute socket initialization script as the Podman user (passes the user name as an environment variable to the script)
-  sudo -u "$USER_NAME" env \
+  env \
     USER_NAME="$USER_NAME" \
     sh "$SOCKET_INIT_SCRIPT";
 
@@ -231,10 +229,17 @@ podman_vm_init() {
   echo "Deleting socket initialization script...";
   rm "$SOCKET_INIT_SCRIPT";
 
-  ### Pods and Containers Initialization
+  ### Clear
+
+  # Remove temporary scripts directory
+  echo "Removing temporary scripts directory...";
+  # rm --recursive --force "$TEMP_SCRIPTS_DIR";
+  rm -rf "$TEMP_SCRIPTS_DIR";
+
+  ### Podman Initialization
 
   # Podman initialization script
-  PODMAN_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/podman-init.sh";
+  PODMAN_INIT_SCRIPT='/usr/local/bin/podman-init';
 
   # Download Podman initialization script
   echo "Downloading Podman initialization script...";
@@ -244,6 +249,9 @@ podman_vm_init() {
   if test ! -f "$PODMAN_INIT_SCRIPT"; then
     echo "$(tput bold)$(tput setaf 1)Error: Podman initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
+
+  # Make Podman initialization script executable
+  chmod +x "$PODMAN_INIT_SCRIPT";
 
   # Execute Podman initialization script as the Podman user (passes domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, secrets, and temporary scripts directory as environment variables to the script)
   sudo -u "$USER_NAME" env \
@@ -259,15 +267,8 @@ podman_vm_init() {
     sh "$PODMAN_INIT_SCRIPT"
 
   # Delete Podman initialization script
-  echo "Deleting Podman initialization script...";
-  rm "$PODMAN_INIT_SCRIPT";
-
-  ### Clear
-
-  # Remove temporary scripts directory
-  echo "Removing temporary scripts directory...";
-  # rm --recursive --force "$TEMP_SCRIPTS_DIR";
-  rm -rf "$TEMP_SCRIPTS_DIR";
+  # echo "Deleting Podman initialization script...";
+  # rm "$PODMAN_INIT_SCRIPT";
 
 }
 
