@@ -48,29 +48,17 @@ podman_vm_socket_init() {
       echo "Enabling lingering for user $USER_NAME...";
       loginctl enable-linger "$USER_NAME";
 
-      # The XDR runtime directory and DBUS session bus address envinroment variables must be passed when the command is run by a different user
-
-      # Enable Podman socket in user context
+      # Enable Podman socket in user context (the command must be run as the rootless user)
       echo "Enabling Podman socket for user $USER_NAME...";
+      systemctl --user enable podman.socket;
 
-      sudo --user "$USER_NAME" \
-        env XDG_RUNTIME_DIR="/run/user/$USER_ID" \
-        systemctl --user enable podman.socket;
-
-      # Start Podman socket in user context
+      # Start Podman socket in user context (the command must be run as the rootless user)
       echo "Starting Podman socket for user $USER_NAME...";
+      systemctl --user start podman.socket;
 
-      sudo --user "$USER_NAME" \
-        env XDG_RUNTIME_DIR="/run/user/$USER_ID" \
-        env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$USER_ID/bus" \
-        systemctl --user start podman.socket;
-
-      # Display Podman socket status
+      # Display Podman socket status (the command must be run as the rootless user)
       echo "$(tput bold)Podman socket status:$(tput sgr0)";
-
-      sudo --user "$USER_NAME" \
-        env XDG_RUNTIME_DIR="/run/user/$USER_ID" \
-        systemctl --user status podman.socket;
+      systemctl --user status podman.socket;
 
       echo "$(tput bold)$(tput setaf 2)Podman socket initialization completed.$(tput sgr0)";
 
