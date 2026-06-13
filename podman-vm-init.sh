@@ -108,19 +108,6 @@ podman_vm_init() {
 
   echo "$(tput bold)$(tput setaf 2)Configuration successfully loaded.$(tput sgr0)";
 
-  ### Hostname
-
-  # Set hostname
-  echo "Setting hostname to $HOST_NAME...";
-  hostname "$HOST_NAME";
-  echo "$HOST_NAME" > /etc/hostname;
-  
-  # Set host domain name
-  echo "Setting host domain name to $HOST_DOMAIN_NAME...";
-  echo "127.0.1.1 $HOST_DOMAIN_NAME $HOST_NAME" >> '/etc/hosts';
-
-  echo "$(tput bold)$(tput setaf 2)Hostname and host domain name successfully set.$(tput sgr0)";
-
   ### Host Data Directory
 
   # Create host data directory if it does not exist
@@ -151,6 +138,33 @@ podman_vm_init() {
 
   # Scripts URL
   SCRITPS_URL='https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main';
+
+  ### Hostname and Host Domain Name
+
+  # Host initialization script
+  HOST_INIT_SCRIPT='podman-vm-host-init.sh';
+
+  # Temporary host initialization script
+  TEMP_HOST_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/$HOST_INIT_SCRIPT";
+
+  # Download host initialization script
+  echo "Downloading host initialization script...";
+  curl --fail --location --silent --output "$TEMP_HOST_INIT_SCRIPT" "$SCRITPS_URL/$HOST_INIT_SCRIPT";
+
+  # Verify that the host initialization script was successfully downloaded
+  if test ! -f "$TEMP_HOST_INIT_SCRIPT"; then
+    echo "$(tput bold)$(tput setaf 1)Error: Host initialization script could not be downloaded.$(tput sgr0)" && exit 1;
+  fi
+
+  # Execute host initialization script (passes the username, user ID, and user pubic SSH key as environment variables to the script)
+  env DOMAIN="$DOMAIN" \
+  env HOST_NAME="$HOST_NAME" \
+  env HOST_DOMAIN_NAME="$HOST_DOMAIN_NAME" \ 
+  sh "$TEMP_HOST_INIT_SCRIPT";
+
+  # Delete host initialization script
+  echo "Deleting host initialization script...";
+  rm "$TEMP_HOST_INIT_SCRIPT";
 
   ### Packages
 
