@@ -43,7 +43,7 @@ podman_secrets_init() {
 
         ### DigitalOcean API Token
 
-        elseif test "$SECRET" = 'digitalocean-api-token'; then
+        elif test "$SECRET" = 'digitalocean-api-token'; then
 
           # If DigitalOcean API token secret does not exist
           if ! podman secret exists digitalocean-api-token; then
@@ -61,7 +61,7 @@ podman_secrets_init() {
 
         ### MQTT Password
 
-        elseif test "$SECRET" = 'mqtt-password'; then
+        elif test "$SECRET" = 'mqtt-password'; then
 
           # If MQTT password secret does not exist
           if ! podman secret exists mqtt-password; then
