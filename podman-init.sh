@@ -11,6 +11,17 @@ podman_init() {
 
   echo "Initializing Podman...";
 
+  # Configuration file
+  CONFIG_FILE='/etc/profile.d/podman-vm-init.sh';
+
+  # Verify that the configuration file exists
+  if test ! -f "$CONFIG_FILE"; then
+    echo "$(tput bold)$(tput setaf 1)Error: Configuration file does not exist.$(tput sgr0)" && exit 1;
+  fi
+
+  # Source configuration file
+  . "$CONFIG_FILE";
+
   # Verify configuration
 
   # Verify that the domain is specified
