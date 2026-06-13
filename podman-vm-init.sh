@@ -158,9 +158,9 @@ podman_vm_init() {
 
   # Execute host initialization script (passes the username, user ID, and user pubic SSH key as environment variables to the script)
   env DOMAIN="$DOMAIN" \
-  env HOST_NAME="$HOST_NAME" \
-  env HOST_DOMAIN_NAME="$HOST_DOMAIN_NAME" \ 
-  sh "$TEMP_HOST_INIT_SCRIPT";
+      HOST_NAME="$HOST_NAME" \
+      HOST_DOMAIN_NAME="$HOST_DOMAIN_NAME" \
+      sh "$TEMP_HOST_INIT_SCRIPT";
 
   # Delete host initialization script
   echo "Deleting host initialization script...";
@@ -209,9 +209,9 @@ podman_vm_init() {
 
   # Execute user initialization script (passes the username, user ID, and user pubic SSH key as environment variables to the script)
   env USER_NAME="$USER_NAME" \
-  env USER_ID="$USER_ID" \
-  env USER_KEY="$USER_KEY" \
-  sh "$TEMP_USER_INIT_SCRIPT";
+    USER_ID="$USER_ID" \
+    USER_KEY="$USER_KEY" \
+    sh "$TEMP_USER_INIT_SCRIPT";
 
   # Delete user initialization script
   echo "Deleting user initialization script...";
