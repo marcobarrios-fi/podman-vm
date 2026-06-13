@@ -40,10 +40,21 @@ podman_init() {
 
   # Pods, containers, and secrets are optional
 
-  # Verify that the temporary scripts directory is specified
-  if test ! -n "$TEMP_SCRIPTS_DIR"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Temporary scripts directory is not specified.$(tput sgr0)" && exit 1;
+  ### Temporary Scripts Directory
+  # Note: the non-root user does not have access to the temporary scripts directory created by the root user
+
+  # Create temporary scripts directory
+  echo "Creating temporary scripts directory...";
+  TEMP_SCRIPTS_DIR=$(mktemp --directory);
+
+  # Verify that the temporary scripts directory was successfully created
+  if test ! -d "$TEMP_SCRIPTS_DIR"; then
+    echo "$(tput bold)$(tput setaf 1)Error: Temporary scripts directory could not be created.$(tput sgr0)" && exit 1;
   fi
+
+  # Display temporary scripts directory
+  echo "Temporary scripts directory:"
+  echo "$(tput bold)$(tput setaf 4)$TEMP_SCRIPTS_DIR$(tput sgr0)";
 
   ### Temporary Configuration Directory
 
@@ -132,6 +143,11 @@ podman_init() {
     sh "$CONTAINERS_INIT_SCRIPT";
 
   ### Clear
+
+  # Remove temporary scripts directory
+  echo "Removing temporary scripts directory...";
+  # rm --recursive --force "$TEMP_SCRIPTS_DIR";
+  rm -rf "$TEMP_SCRIPTS_DIR";
 
   # Remove temporary configuration directory
   echo "Removing temporary configuration directory...";
