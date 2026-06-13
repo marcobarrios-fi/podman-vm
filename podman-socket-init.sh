@@ -25,6 +25,11 @@ podman_socket_init() {
       echo "$(tput bold)$(tput setaf 1)Error: User name is not specified.$(tput sgr0)" && exit 1;
     fi
 
+    # Verify that the user ID is specified
+    if test ! -n "$USER_ID"; then
+      echo "$(tput bold)$(tput setaf 1)Error: User ID is not specified.$(tput sgr0)" && exit 1;
+    fi
+
     # Operating system
     OPERATING_SYSTEM=$(. /etc/os-release && echo "$ID");
 
@@ -41,15 +46,21 @@ podman_socket_init() {
 
       # Enable Podman socket in user context (the command must be run as the rootless user)
       echo "Enabling Podman socket for user $USER_NAME...";
-      systemctl --user enable podman.socket;
+      env XDG_RUNTIME_DIR="/run/user/$USER_ID" \
+        DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$USER_ID/bus" \
+        systemctl --user enable podman.socket;
 
       # Start Podman socket in user context (the command must be run as the rootless user)
       echo "Starting Podman socket for user $USER_NAME...";
-      systemctl --user start podman.socket;
+      env XDG_RUNTIME_DIR="/run/user/$USER_ID" \
+        DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$USER_ID/bus" \
+        systemctl --user start podman.socket;
 
       # Display Podman socket status (the command must be run as the rootless user)
       echo "$(tput bold)Podman socket status:$(tput sgr0)";
-      systemctl --user status podman.socket;
+      env XDG_RUNTIME_DIR="/run/user/$USER_ID" \
+        DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$USER_ID/bus" \
+        systemctl --user status podman.socket;
 
       echo "$(tput bold)$(tput setaf 2)Podman socket initialization completed.$(tput sgr0)";
 
