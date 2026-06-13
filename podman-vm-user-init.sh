@@ -102,6 +102,9 @@ podman_vm_user_init() {
     # Set permissions for the authorized keys file
     chmod 0600 "/home/$USER_NAME/.ssh/authorized_keys";
 
+    # Set home directory permissions
+    chown -R "$USER_NAME":"$GROUP_NAME" "/home/$USER_NAME/";
+
     echo "$(tput bold)$(tput setaf 2)User initialization completed.$(tput sgr0)";
  
   else
