@@ -12,7 +12,14 @@ podman_init() {
   echo "Initializing Podman...";
 
   # Configuration file
-  CONFIG_FILE='/etc/profile.d/podman-vm-init.sh';
+  # If configuration file path is provided as an argument
+  if test "$#" -eq 1; then
+    # User-provided configuration file
+    CONFIG_FILE="$1";
+  else
+    # Default configuration file
+    CONFIG_FILE='/etc/profile.d/podman-vm-init.sh';
+  fi
 
   # Verify that the configuration file exists
   if test ! -f "$CONFIG_FILE"; then
@@ -224,4 +231,4 @@ podman_init() {
 
 }
 
-podman_init;
+podman_init "$@";
