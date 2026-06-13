@@ -211,4 +211,13 @@ podman_init() {
 
 }
 
-podman_init "$@";
+ # Execute Podman initialization function (passes the domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, and secrets as environment variables to the function)
+
+env DOMAIN="$DOMAIN" \
+env HOST_DATA_DIR="$HOST_DATA_DIR" \
+env USER_NAME="$USER_NAME" \
+env GITHUB_REPO_TOKEN="$GITHUB_REPO_TOKEN" \
+env PODS="$PODS" \
+env CONTAINERS="$CONTAINERS" \
+env SECRETS="$SECRETS" \
+podman_init;
