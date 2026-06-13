@@ -25,11 +25,6 @@ podman_socket_init() {
       echo "$(tput bold)$(tput setaf 1)Error: User name is not specified.$(tput sgr0)" && exit 1;
     fi
 
-    # Verify that the user ID is specified
-    if test ! -n "$USER_ID"; then
-      echo "$(tput bold)$(tput setaf 1)Error: User ID is not specified.$(tput sgr0)" && exit 1;
-    fi
-
     # Operating system
     OPERATING_SYSTEM=$(. /etc/os-release && echo "$ID");
 
