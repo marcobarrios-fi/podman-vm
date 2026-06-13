@@ -30,12 +30,22 @@ podman_pod_init() {
     echo "$(tput bold)$(tput setaf 1)Error: Host data directory does not exist.$(tput sgr0)" && exit 1;
   fi
 
+  # Verify that the temporary scripts directory is specified
+  if test ! -n "$TEMP_SCRIPTS_DIR"; then
+    echo "$(tput bold)$(tput setaf 1)Error: Temporary scripts directory is not specified.$(tput sgr0)" && exit 1;
+  fi
+
+  # Verify that the temporary scripts directory exists
+  if test ! -d "$TEMP_SCRIPTS_DIR"; then
+    echo "$(tput bold)$(tput setaf 1)Error: Temporary scripts directory does not exist.$(tput sgr0)" && exit 1;
+  fi
+
   # Verify that the temporary configuration directory is specified
   if test ! -n "$TEMP_CONFIG_DIR"; then
     echo "$(tput bold)$(tput setaf 1)Error: Temporary configuration directory is not specified.$(tput sgr0)" && exit 1;
   fi
 
-  # Verify that the configuration directory exists
+  # Verify that the temporary configuration directory exists
   if test ! -d "$TEMP_CONFIG_DIR"; then
     echo "$(tput bold)$(tput setaf 1)Error: Temporary configuration directory does not exist.$(tput sgr0)" && exit 1;
   fi
@@ -105,20 +115,35 @@ podman_pod_init() {
   
   fi
 
+  # Scripts URL
+  SCRITPS_URL='https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main';
+
   # Containers initialization script
-  CONTAINERS_INIT_SCRIPT="$HOST_DATA_DIR/scripts/podman-containers-init.sh";
+  CONTAINERS_INIT_SCRIPT='podman-containers-init.sh';
+
+  # Temporary containers initialization script
+  TEMP_CONTAINERS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/$CONTAINERS_INIT_SCRIPT";
 
   # Download containers initialization script
   echo "Downloading containers initialization script...";
-  curl --fail --silent --output "$CONTAINERS_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-containers-init.sh';
+  curl --fail --silent --output "$TEMP_CONTAINERS_INIT_SCRIPT" "$SCRITPS_URL/$CONTAINERS_INIT_SCRIPT";
 
-  # Verify that the containers initialization script exists
-  if test ! -f "$CONTAINERS_INIT_SCRIPT"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Containers initialization script does not exist.$(tput sgr0)" && exit 1;
+  # Verify that the containers initialization script was successfully downloaded
+  if test ! -f "$TEMP_CONTAINERS_INIT_SCRIPT"; then
+    echo "$(tput bold)$(tput setaf 1)Error: Containers initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
   
-  # Execute the container initialization script (passes the domain, host data directory, temporary configuration directory, containers list, and pod,as environment variables to the script)
-  DOMAIN="$DOMAIN" HOST_DATA_DIR="$HOST_DATA_DIR" TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" CONTAINERS="$CONTAINERS" POD="$DOMAIN-$POD" sh "$CONTAINERS_INIT_SCRIPT"; 
+  # Execute the container initialization script (passes the domain, host data directory, containers list, pod, and temporary configuration directory as environment variables to the script)
+  env DOMAIN="$DOMAIN" \
+  env HOST_DATA_DIR="$HOST_DATA_DIR" \
+  env CONTAINERS="$CONTAINERS" \
+  env POD="$DOMAIN-$POD" \
+  env TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" \
+  sh "$TEMP_CONTAINERS_INIT_SCRIPT"; 
+
+  # Delete containers initialization script
+  echo "Deleting containers initialization script...";
+  rm "$TEMP_CONTAINERS_INIT_SCRIPT";
 
   echo "$(tput bold)$(tput setaf 2)Creating $POD pod completed.$(tput sgr0)";
 
@@ -149,6 +174,16 @@ podman_pods_init() {
     # Verify that the host data directory exists
     if test ! -d "$HOST_DATA_DIR"; then
       echo "$(tput bold)$(tput setaf 1)Error: Host data directory does not exist.$(tput sgr0)" && exit 1;
+    fi
+
+     # Verify that the temporary scripts directory is specified
+    if test ! -n "$TEMP_SCRIPTS_DIR"; then
+      echo "$(tput bold)$(tput setaf 1)Error: Temporary scripts directory is not specified.$(tput sgr0)" && exit 1;
+    fi
+
+    # Verify that the temporary scripts directory exists
+    if test ! -d "$TEMP_SCRIPTS_DIR"; then
+      echo "$(tput bold)$(tput setaf 1)Error: Temporary scripts directory does not exist.$(tput sgr0)" && exit 1;
     fi
 
     # Verify that the temporary configuration directory is specified
