@@ -52,7 +52,7 @@ podman_secrets_init() {
             # Set DigitalOcean API token environment variable
             export DIGITALOCEAN_API_TOKEN;
             # Set DigitalOcean API token secret
-            podman secret create --env=true digitaocean-api-token 'DIGITALOCEAN_API_TOKEN';
+            podman secret create --env=true digitalocean-api-token 'DIGITALOCEAN_API_TOKEN';
           fi
 
           # Display DigitalOcean API token secret details
