@@ -119,6 +119,8 @@ podman_vm_init() {
   echo "Setting host domain name to $HOST_DOMAIN_NAME...";
   echo "127.0.1.1 $HOST_DOMAIN_NAME $HOST_NAME" >> '/etc/hosts';
 
+  echo "$(tput bold)$(tput setaf 2)Hostname and host domain name successfully set.$(tput sgr0)";
+
   ### Host Data Directory
 
   # Create host data directory if it does not exist
@@ -180,6 +182,8 @@ podman_vm_init() {
     apt install --assume-yes podman;
 
   fi
+
+  echo "$(tput bold)$(tput setaf 2)Packages successfully installed.$(tput sgr0)";
 
   ### User Initialization
 
