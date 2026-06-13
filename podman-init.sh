@@ -89,7 +89,8 @@ podman_init() {
 
   # Execute socket initialization script as the Podman user (passes the user name as an environment variable to the script)
   env USER_NAME="$USER_NAME" \
-  sh "$TEMP_SOCKET_INIT_SCRIPT";
+    USER_ID="$USER_ID" \
+    sh "$TEMP_SOCKET_INIT_SCRIPT";
 
   # Delete socket initialization script
   echo "Deleting socket initialization script...";
