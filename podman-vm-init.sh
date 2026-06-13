@@ -278,10 +278,12 @@ podman_vm_init() {
   # Make Podman initialization script executable
   chmod +x "$PODMAN_INIT_SCRIPT";
 
+  # Enable lingering (allows the user to run user-level systemd services even when not logged in)
+  echo "Enabling lingering for user $USER_NAME...";
   loginctl enable-linger "$USER_NAME";
 
   # Execute Podman initialization script as the Podman user (passes domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, and secrets as environment variables to the script)
-  su - "$USER_NAME" -c \
+  sudo --user "$USER_NAME" \
     env DOMAIN="$DOMAIN" \
     env HOST_DATA_DIR="$HOST_DATA_DIR" \
     env USER_NAME="$USER_NAME" \
@@ -289,8 +291,9 @@ podman_vm_init() {
     env GITHUB_REPO_TOKEN="$GITHUB_REPO_TOKEN" \
     env PODS="$PODS" \
     env CONTAINERS="$CONTAINERS" \
-    env SECRETS="$SECRETS" \
-    sh "$PODMAN_INIT_SCRIPT"
+    env SECRETS="$SECRETS";
+
+    sudo --login --user "$USER_NAME";
 
 }
 
