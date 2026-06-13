@@ -256,13 +256,13 @@ podman_vm_init() {
   echo "Enabling lingering for user $USER_NAME...";
   loginctl enable-linger "$USER_NAME";
 
-  # Switch to rootless user
-  echo "Switching to rootless user...";
-  sudo --login --user "$USER_NAME";
-
   echo "$(tput bold)$(tput setaf 2)Virtual machine initialization completed.$(tput sgr0)";
 
   echo "Execute $(tput bold)podman-init$(tput sgr0) to initialize Podman.";
+
+  # Switch to rootless user
+  echo "Switching to rootless user...";
+  sudo --login --user "$USER_NAME";
 
 }
 
