@@ -39,7 +39,7 @@ podman_vm_init() {
   CONFIG_FILE_TOKEN="$2";
 
   # Configuration file
-  CONFIG_FILE=$(mktemp);
+  CONFIG_FILE='/etc/profile.d/podman-vm-init.sh';
 
   # Download configuration file
   echo "Downloading configuration file...";
@@ -50,12 +50,12 @@ podman_vm_init() {
     echo "$(tput bold)$(tput setaf 1)Error: Configuration file could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
+  # Set configuration permissions
+  echo "Setting configuration permissions...";
+  chmod 644 "$CONFIG_FILE";
+
   # Source configuration file
   . "$CONFIG_FILE";
-
-  # Delete configuration file
-  echo "Deleting configuration file...";
-  rm "$CONFIG_FILE";
 
   # Verify configuration
 
@@ -282,18 +282,7 @@ podman_vm_init() {
   echo "Enabling lingering for user $USER_NAME...";
   loginctl enable-linger "$USER_NAME";
 
-  # Execute Podman initialization script as the Podman user (passes domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, and secrets as environment variables to the script)
-  sudo --user "$USER_NAME" \
-    env DOMAIN="$DOMAIN" \
-    env HOST_DATA_DIR="$HOST_DATA_DIR" \
-    env USER_NAME="$USER_NAME" \
-    env GITHUB_REPO="$GITHUB_REPO" \
-    env GITHUB_REPO_TOKEN="$GITHUB_REPO_TOKEN" \
-    env PODS="$PODS" \
-    env CONTAINERS="$CONTAINERS" \
-    env SECRETS="$SECRETS";
-
-    sudo --login --user "$USER_NAME";
+  sudo --login --user "$USER_NAME";
 
 }
 
