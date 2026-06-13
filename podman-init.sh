@@ -177,7 +177,7 @@ podman_init() {
 
   # Execute containers initialization script (passes the domain, host data directory, containers list, temporary configuration directory, and pod name as environment variables to the script)
   env DOMAIN="$DOMAIN" \
-  env HOST_DATA_DIR="$HOST_DATA_DIR" \ 
+  env HOST_DATA_DIR="$HOST_DATA_DIR" \
   env CONTAINERS="$CONTAINERS" \
   env TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" \
   env POD="" \
@@ -211,13 +211,4 @@ podman_init() {
 
 }
 
- # Execute Podman initialization function (passes the domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, and secrets as environment variables to the function)
-
-env DOMAIN="$DOMAIN" \
-env HOST_DATA_DIR="$HOST_DATA_DIR" \
-env USER_NAME="$USER_NAME" \
-env GITHUB_REPO_TOKEN="$GITHUB_REPO_TOKEN" \
-env PODS="$PODS" \
-env CONTAINERS="$CONTAINERS" \
-env SECRETS="$SECRETS" \
 podman_init;
