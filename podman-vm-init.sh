@@ -106,6 +106,8 @@ podman_vm_init() {
 
   # Pods, containers, and secrets are optional
 
+  echo "$(tput bold)$(tput setaf 2)Configuration successfully loaded.$(tput sgr0)";
+
   ### Hostname
 
   # Set hostname
