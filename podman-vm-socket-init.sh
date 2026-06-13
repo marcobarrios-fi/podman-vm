@@ -55,7 +55,6 @@ podman_vm_socket_init() {
 
       sudo --user "$USER_NAME" \
         env XDG_RUNTIME_DIR="/run/user/$USER_ID" \
-        env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$USER_ID/bus" \
         systemctl --user enable podman.socket;
 
       # Start Podman socket in user context
@@ -71,7 +70,6 @@ podman_vm_socket_init() {
 
       sudo --user "$USER_NAME" \
         env XDG_RUNTIME_DIR="/run/user/$USER_ID" \
-        env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$USER_ID/bus" \
         systemctl --user status podman.socket;
 
       echo "$(tput bold)$(tput setaf 2)Podman socket initialization completed.$(tput sgr0)";
