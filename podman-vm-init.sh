@@ -272,7 +272,7 @@ podman_vm_init() {
   # Make Podman initialization script executable
   chmod +x "$PODMAN_INIT_SCRIPT";
 
-  # Execute Podman initialization script as the Podman user (passes domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, secrets, and temporary scripts directory as environment variables to the script)
+  # Execute Podman initialization script as the Podman user (passes domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, and secrets as environment variables to the script)
   sudo --user "$USER_NAME" \
     env DOMAIN="$DOMAIN" \
     env HOST_DATA_DIR="$HOST_DATA_DIR" \
@@ -282,7 +282,6 @@ podman_vm_init() {
     env PODS="$PODS" \
     env CONTAINERS="$CONTAINERS" \
     env SECRETS="$SECRETS" \
-    env TEMP_SCRIPTS_DIR="$TEMP_SCRIPTS_DIR" \
     sh "$PODMAN_INIT_SCRIPT"
 
   # Delete Podman initialization script
