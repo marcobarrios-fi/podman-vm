@@ -3,7 +3,7 @@
 # Podman Virtual Machine Initialization Shell Script
 # Copyright ©️ 2025-2026 Marco Barrios. All rights reserved.
 # Initializes the virtual machine by configuring the host, installing necessary packages, creating a rootless user, configuring user SSH access, and installing the Podman initialization script
-# Usage: sudo curl --location --output '/usr/local/bin/vm-init' 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-vm-init.sh' && sudo chmod +x /usr/local/bin/vm-init && sudo vm-init <configuration file path>
+# Usage: sudo curl --location --output '/usr/local/bin/vm-init' 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-vm-init.sh' && sudo chmod +x /usr/local/bin/vm-init && sudo vm-init <configuration file URL> <configuration file access token>
 
 # Enable strict error handling (the script will stop immediately if a variable is not set or a command fails)
 set -eu;
@@ -20,21 +20,42 @@ podman_vm_init() {
     echo "$(tput bold)$(tput setaf 1)Error: Unsupported operating system.$(tput sgr0)" && exit 1;
   fi
 
-  # Verify that a configuration file was passed as an argument to the script
-  if test ! -n "$@"; then
-    echo "$(tput bold)$(tput setaf 1)Error: The required configuration file argument is missing.$(tput sgr0)" && exit 1;
+  # Verify that the configuration file URL is specified
+  if test "$#" -lt 1; then
+    echo "$(tput bold)$(tput setaf 1)Error: Configuration file URL is not specified.$(tput sgr0)";
+    echo "Usage: $(tput bold)sudo vm-init <configuration file URL> <configuration file access token>$(tput sgr0)" && exit 1;
   fi
 
+  # Verify that the configuration file access token is specified
+  if test "$#" -lt 2; then
+    echo "$(tput bold)$(tput setaf 1)Error: Configuration file access token is not specified.$(tput sgr0)";
+    echo "Usage: $(tput bold)sudo vm-init <configuration file URL> <configuration file access token>$(tput sgr0)" && exit 1;
+  fi
+
+  # Configuration file URL
+  CONFIG_FILE_URL="$1";
+
+  # Configuration file access token
+  CONFIG_FILE_TOKEN="$2";
+
   # Configuration file
-  CONFIG_FILE="$1";
+  CONFIG_FILE=$(mktemp);
+
+  # Download configuration file
+  echo "Downloading configuration file...";
+  curl --fail --location --silent --header "Authorization: Bearer $CONFIG_FILE_TOKEN" --output "$CONFIG_FILE" "$CONFIG_FILE_URL";  
  
-  # Verify that the configuration file exists
+  # Verify that the configuration file was successfully downloaded
   if test ! -f "$CONFIG_FILE"; then
-    echo "$(tput bold)$(tput setaf 1)Error: The provided configuration file does not exist.$(tput sgr0)" && exit 1;
+    echo "$(tput bold)$(tput setaf 1)Error: Configuration file could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
   # Source configuration file
   . "$CONFIG_FILE";
+
+  # Delete configuration file
+  echo "Deleting configuration file...";
+  rm "$CONFIG_FILE";
 
   # Verify configuration
 
@@ -173,10 +194,9 @@ podman_vm_init() {
   fi
 
   # Execute user initialization script (passes the username, user ID, and user pubic SSH key as environment variables to the script)
-  env \
-    USER_NAME="$USER_NAME" \
-    USER_ID="$USER_ID" \
-    USER_KEY="$USER_KEY" \
+  env USER_NAME="$USER_NAME" \
+    env USER_ID="$USER_ID" \
+    env USER_KEY="$USER_KEY" \
     sh "$USER_INIT_SCRIPT";
 
   # Delete user initialization script
@@ -198,8 +218,7 @@ podman_vm_init() {
   fi
 
   # Execute rootless initialization script (passes the username as environment variables to the script)
-  env \
-    USER_NAME="$USER_NAME" \
+  env USER_NAME="$USER_NAME" \
     sh "$ROOTLESS_INIT_SCRIPT";
 
   # Delete rootless initialization script
@@ -221,8 +240,8 @@ podman_vm_init() {
   fi
 
   # Execute socket initialization script as the Podman user (passes the user name as an environment variable to the script)
-  env \
-    USER_NAME="$USER_NAME" \
+  env USER_NAME="$USER_NAME" \
+    env USER_ID="$USER_ID" \
     sh "$SOCKET_INIT_SCRIPT";
 
   # Delete socket initialization script
@@ -254,16 +273,16 @@ podman_vm_init() {
   chmod +x "$PODMAN_INIT_SCRIPT";
 
   # Execute Podman initialization script as the Podman user (passes domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, secrets, and temporary scripts directory as environment variables to the script)
-  sudo -u "$USER_NAME" env \
-    DOMAIN="$DOMAIN" \
-    HOST_DATA_DIR="$HOST_DATA_DIR" \
-    USER_NAME="$USER_NAME" \
-    GITHUB_REPO="$GITHUB_REPO" \
-    GITHUB_REPO_TOKEN="$GITHUB_REPO_TOKEN" \
-    PODS="$PODS" \
-    CONTAINERS="$CONTAINERS" \
-    SECRETS="$SECRETS" \
-    TEMP_SCRIPTS_DIR="$TEMP_SCRIPTS_DIR" \
+  sudo --user "$USER_NAME" \
+    env DOMAIN="$DOMAIN" \
+    env HOST_DATA_DIR="$HOST_DATA_DIR" \
+    env USER_NAME="$USER_NAME" \
+    env GITHUB_REPO="$GITHUB_REPO" \
+    env GITHUB_REPO_TOKEN="$GITHUB_REPO_TOKEN" \
+    env PODS="$PODS" \
+    env CONTAINERS="$CONTAINERS" \
+    env SECRETS="$SECRETS" \
+    env TEMP_SCRIPTS_DIR="$TEMP_SCRIPTS_DIR" \
     sh "$PODMAN_INIT_SCRIPT"
 
   # Delete Podman initialization script
