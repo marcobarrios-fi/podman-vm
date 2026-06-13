@@ -135,11 +135,11 @@ podman_pod_init() {
   
   # Execute the container initialization script (passes the domain, host data directory, containers list, pod, and temporary configuration directory as environment variables to the script)
   env DOMAIN="$DOMAIN" \
-  env HOST_DATA_DIR="$HOST_DATA_DIR" \
-  env CONTAINERS="$CONTAINERS" \
-  env POD="$DOMAIN-$POD" \
-  env TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" \
-  sh "$TEMP_CONTAINERS_INIT_SCRIPT"; 
+    HOST_DATA_DIR="$HOST_DATA_DIR" \
+    CONTAINERS="$CONTAINERS" \
+    POD="$DOMAIN-$POD" \
+    TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" \
+    sh "$TEMP_CONTAINERS_INIT_SCRIPT"; 
 
   # Delete containers initialization script
   echo "Deleting containers initialization script...";
