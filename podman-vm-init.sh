@@ -149,110 +149,84 @@ podman_vm_init() {
   echo "Temporary scripts directory:"
   echo "$(tput bold)$(tput setaf 4)$TEMP_SCRIPTS_DIR$(tput sgr0)";
 
+  # Scripts URL
+  SCRITPS_URL='https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main';
+
   ### Packages
 
-  echo "Installing packages...";
+  # Packages initialization script
+  PACKAGES_INIT_SCRIPT='podman-vm-packages-init.sh';
 
-  if test "$OPERATING_SYSTEM" = "alpine"; then
-    
-    # Update package list and upgrade packages
-    apk update && apk upgrade --no-cache;
-    
-    # Install envsubst
-    apk add --no-cache gettext-envsubst;
-    # Install git
-    apk add --no-cache git;
-    # Install jq
-    apk add --no-cache jq;
-    # Install Podman
-    apk add --no-cache podman;
+  # Temporary packages initialization script
+  TEMP_PACKAGES_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/$PACKAGES_INIT_SCRIPT";
 
-  elif test "$OPERATING_SYSTEM" = "ubuntu"; then
+  # Download packages initialization script
+  echo "Downloading packages initialization script...";
+  curl --fail --location --silent --output "$TEMP_PACKAGES_INIT_SCRIPT" "$SCRITPS_URL/$PACKAGES_INIT_SCRIPT";
 
-    # Update package list and upgrade packages
-    apt update --assume-yes && apt upgrade --assume-yes;
-    
-    # Install envsubst
-    apt install --assume-yes gettext-base;
-    # Install git
-    apt install --assume-yes git;
-    # Install jq
-    apt install --assume-yes jq;
-    # Install Podman
-    apt install --assume-yes podman;
-
+  # Verify that the packages initialization script was successfully downloaded
+  if test ! -f "$TEMP_PACKAGES_INIT_SCRIPT"; then
+    echo "$(tput bold)$(tput setaf 1)Error: Packages initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
-  echo "$(tput bold)$(tput setaf 2)Packages successfully installed.$(tput sgr0)";
+  # Execute packages initialization script
+  sh "$TEMP_PACKAGES_INIT_SCRIPT";
+
+  # Delete packages initialization script
+  echo "Deleting packages initialization script...";
+  rm "$TEMP_PACKAGES_INIT_SCRIPT";
 
   ### User Initialization
 
   # User initialization script
-  USER_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/podman-vm-user-init.sh";
+  USER_INIT_SCRIPT='podman-vm-user-init.sh';
+
+  # Temporary user initialization script
+  TEMP_USER_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/$USER_INIT_SCRIPT";
 
   # Download user initialization script
   echo "Downloading user initialization script...";
-  curl --fail --location --silent --output "$USER_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-vm-user-init.sh';
+  curl --fail --location --silent --output "$TEMP_USER_INIT_SCRIPT" "$SCRITPS_URL/$USER_INIT_SCRIPT";
 
   # Verify that the user initialization script was successfully downloaded
-  if test ! -f "$USER_INIT_SCRIPT"; then
+  if test ! -f "$TEMP_USER_INIT_SCRIPT"; then
     echo "$(tput bold)$(tput setaf 1)Error: User initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
   # Execute user initialization script (passes the username, user ID, and user pubic SSH key as environment variables to the script)
   env USER_NAME="$USER_NAME" \
-    env USER_ID="$USER_ID" \
-    env USER_KEY="$USER_KEY" \
-    sh "$USER_INIT_SCRIPT";
+  env USER_ID="$USER_ID" \
+  env USER_KEY="$USER_KEY" \
+  sh "$TEMP_USER_INIT_SCRIPT";
 
   # Delete user initialization script
   echo "Deleting user initialization script...";
-  rm "$USER_INIT_SCRIPT";
+  rm "$TEMP_USER_INIT_SCRIPT";
 
   ### Rootless Podman Initialization
 
   # Rootless initialization script
-  ROOTLESS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/podman-vm-rootless-init.sh";
+  ROOTLESS_INIT_SCRIPT='podman-vm-rootless-init.sh';
+
+  # Temporary rootless initialization script
+  TEMP_ROOTLESS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/$ROOTLESS_INIT_SCRIPT";
 
   # Download rootless initialization script
   echo "Downloading rootless initialization script...";
-  curl --fail --location --silent --output "$ROOTLESS_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-vm-rootless-init.sh';
+  curl --fail --location --silent --output "$TEMP_ROOTLESS_INIT_SCRIPT" "$SCRITPS_URL/$ROOTLESS_INIT_SCRIPT";
 
   # Verify that the rootless initialization was successfully downloaded
-  if test ! -f "$ROOTLESS_INIT_SCRIPT"; then
+  if test ! -f "$TEMP_ROOTLESS_INIT_SCRIPT"; then
     echo "$(tput bold)$(tput setaf 1)Error: Rootless initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
   # Execute rootless initialization script (passes the username as environment variables to the script)
   env USER_NAME="$USER_NAME" \
-    sh "$ROOTLESS_INIT_SCRIPT";
+    sh "$TEMP_ROOTLESS_INIT_SCRIPT";
 
   # Delete rootless initialization script
   echo "Deleting rootless initialization script...";
-  rm "$ROOTLESS_INIT_SCRIPT";
-  
-  ### Socket
-
-  # Socket initialization script
-  SOCKET_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/podman-vm-socket-init.sh";
-
-  # Download socket initialization script
-  echo "Downloading socket initialization script...";
-  curl --fail --location --silent --output "$SOCKET_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-vm-socket-init.sh';
-
-  # Verify that the socket initialization script was successfully downloaded
-  if test ! -f "$SOCKET_INIT_SCRIPT"; then
-    echo "$(tput bold)$(tput setaf 1)Error: Socket initialization script could not be downloaded.$(tput sgr0)" && exit 1;
-  fi
-
-  # Execute socket initialization script as the Podman user (passes the user name as an environment variable to the script)
-  # env USER_NAME="$USER_NAME" \
-  #  env USER_ID="$USER_ID" \
-  #  sh "$SOCKET_INIT_SCRIPT";
-
-  # Delete socket initialization script
-  echo "Deleting socket initialization script...";
-  rm "$SOCKET_INIT_SCRIPT";
+  rm "$TEMP_ROOTLESS_INIT_SCRIPT";
 
   ### Clear
 
@@ -282,7 +256,13 @@ podman_vm_init() {
   echo "Enabling lingering for user $USER_NAME...";
   loginctl enable-linger "$USER_NAME";
 
+  # Switch to rootless user
+  echo "Switching to rootless user...";
   sudo --login --user "$USER_NAME";
+
+  echo "$(tput bold)$(tput setaf 2)Virtual machine initialization completed.$(tput sgr0)";
+
+  echo "Execute $(tput bold)podman-init$(tput sgr0) to initialize Podman.";
 
 }
 
