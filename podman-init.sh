@@ -166,4 +166,4 @@ podman_init() {
 
 }
 
-podman_init;
+podman_init "$@";
