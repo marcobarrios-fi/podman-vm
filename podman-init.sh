@@ -158,10 +158,11 @@ podman_init() {
     echo "$(tput bold)$(tput setaf 1)Error: Pods initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
-  # Execute pods initialization script (passes the domain, host data directory, pods list, and temporary configuration directory as environment variables to the script)
+  # Execute pods initialization script (passes the domain, host data directory, pods list, temporary scripts directory, and temporary configuration directory as environment variables to the script)
   env DOMAIN="$DOMAIN" \
   env HOST_DATA_DIR="$HOST_DATA_DIR" \
   env PODS="$PODS" \
+  env TEMP_SCRIPTS_DIR="$TEMP_SCRIPTS_DIR" \
   env TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" \
   sh "$TEMP_PODS_INIT_SCRIPT";
 
