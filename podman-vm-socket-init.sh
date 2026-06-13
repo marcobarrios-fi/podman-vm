@@ -26,7 +26,7 @@ podman_vm_socket_init() {
     fi
 
     # Verify that the user ID is specified
-    if test ! -n "$USER_IS"; then
+    if test ! -n "$USER_ID"; then
       echo "$(tput bold)$(tput setaf 1)Error: User ID is not specified.$(tput sgr0)" && exit 1;
     fi
 
