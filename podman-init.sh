@@ -56,6 +56,34 @@ podman_init() {
   echo "Temporary scripts directory:"
   echo "$(tput bold)$(tput setaf 4)$TEMP_SCRIPTS_DIR$(tput sgr0)";
 
+  # Scripts URL
+  SCRITPS_URL='https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main';
+
+  ### Socket
+
+  # Socket initialization script
+  SOCKET_INIT_SCRIPT='podman-socket-init.sh';
+
+  # Temporary socket initialization script
+  TEMP_SOCKET_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/$SOCKET_INIT_SCRIPT";
+
+  # Download socket initialization script
+  echo "Downloading socket initialization script...";
+  curl --fail --location --silent --output "$TEMP_SOCKET_INIT_SCRIPT" "$SCRITPS_URL/$SOCKET_INIT_SCRIPT";
+
+  # Verify that the socket initialization script was successfully downloaded
+  if test ! -f "$TEMP_SOCKET_INIT_SCRIPT"; then
+    echo "$(tput bold)$(tput setaf 1)Error: Socket initialization script could not be downloaded.$(tput sgr0)" && exit 1;
+  fi
+
+  # Execute socket initialization script as the Podman user (passes the user name as an environment variable to the script)
+  env USER_NAME="$USER_NAME" \
+  sh "$TEMP_SOCKET_INIT_SCRIPT";
+
+  # Delete socket initialization script
+  echo "Deleting socket initialization script...";
+  rm "$TEMP_SOCKET_INIT_SCRIPT";
+
   ### Temporary Configuration Directory
 
   # Create temporary configuration directory
@@ -80,67 +108,84 @@ podman_init() {
   ### Secrets
 
   # Secrets initialization script
-  SECRETS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/podman-secrets-init.sh";
+  SECRETS_INIT_SCRIPT='podman-secrets-init.sh';
+
+  # Temporary secrets initialization script
+  TEMP_SECRETS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/$SECRETS_INIT_SCRIPT";
 
   # Download secrets initialization script
   echo "Downloading secrets initialization script...";
-  curl --fail --location --silent --output "$SECRETS_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-secrets-init.sh';
+  curl --fail --location --silent --output "$TEMP_SECRETS_INIT_SCRIPT" "$SCRITPS_URL/$SECRETS_INIT_SCRIPT";
 
   # Verify that the secrets initialization script was successfully downloaded
-  if test ! -f "$SECRETS_INIT_SCRIPT"; then
+  if test ! -f "$TEMP_SECRETS_INIT_SCRIPT"; then
     echo "$(tput bold)$(tput setaf 1)Error: Secrets initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
   # Execute secrets initialization script (passes secrets as an environment variable to the script)
   env SECRETS="$SECRETS" \
-    sh "$SECRETS_INIT_SCRIPT";
+    sh "$TEMP_SECRETS_INIT_SCRIPT";
 
   # Delete secrets initialization script
   echo "Deleting secrets initialization script...";
-  rm "$SECRETS_INIT_SCRIPT";
+  rm "$TEMP_SECRETS_INIT_SCRIPT";
 
   ### Pods
 
   # Pods initialization script
-  PODS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/podman-pods-init.sh";
+  PODS_INIT_SCRIPT='podman-pods-init.sh';
+
+  # Temporary pods initialization script
+  TEMP_PODS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/$PODS_INIT_SCRIPT";
 
   # Download pods initialization script
   echo "Downloading pods initialization script...";
-  curl --fail --silent --output "$PODS_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-pods-init.sh';
+  curl --fail --silent --output "$TEMP_PODS_INIT_SCRIPT" "$SCRITPS_URL/$PODS_INIT_SCRIPT";
 
   # Verify that the pods initialization script was successfully downloaded
-  if test ! -f "$PODS_INIT_SCRIPT"; then
+  if test ! -f "$TEMP_PODS_INIT_SCRIPT"; then
     echo "$(tput bold)$(tput setaf 1)Error: Pods initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
   # Execute pods initialization script (passes the domain, host data directory, pods list, and temporary configuration directory as environment variables to the script)
   env DOMAIN="$DOMAIN" \
-    env HOST_DATA_DIR="$HOST_DATA_DIR" \
-    env PODS="$PODS" \
-    env TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" \
-    sh "$PODS_INIT_SCRIPT";
+  env HOST_DATA_DIR="$HOST_DATA_DIR" \
+  env PODS="$PODS" \
+  env TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" \
+  sh "$TEMP_PODS_INIT_SCRIPT";
+
+  # Delete pods initialization script
+  echo "Deleting pods initialization script...";
+  rm "$TEMP_PODS_INIT_SCRIPT";
 
   ### Containers
 
   # Containers initialization script
-  CONTAINERS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/podman-containers-init.sh";
+  CONTAINERS_INIT_SCRIPT='podman-containers-init.sh';
+
+  # Temporary containers initialization script
+  TEMP_CONTAINERS_INIT_SCRIPT="$TEMP_SCRIPTS_DIR/$CONTAINERS_INIT_SCRIPT";
 
   # Download containers initialization script
   echo "Downloading containers initialization script...";
-  curl --fail --silent --output "$CONTAINERS_INIT_SCRIPT" 'https://raw.githubusercontent.com/marcobarrios-fi/podman-vm/main/podman-containers-init.sh';
+  curl --fail --silent --output "$TEMP_CONTAINERS_INIT_SCRIPT" "$SCRITPS_URL/$CONTAINERS_INIT_SCRIPT";
 
   # Verify that the containers initialization script was successfully downloaded
-  if test ! -f "$CONTAINERS_INIT_SCRIPT"; then
+  if test ! -f "$TEMP_CONTAINERS_INIT_SCRIPT"; then
     echo "$(tput bold)$(tput setaf 1)Error: Containers initialization script could not be downloaded.$(tput sgr0)" && exit 1;
   fi
 
   # Execute containers initialization script (passes the domain, host data directory, containers list, temporary configuration directory, and pod name as environment variables to the script)
   env DOMAIN="$DOMAIN" \
-    env HOST_DATA_DIR="$HOST_DATA_DIR" \ 
-    env CONTAINERS="$CONTAINERS" \
-    env TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" \
-    env POD="" \
-    sh "$CONTAINERS_INIT_SCRIPT";
+  env HOST_DATA_DIR="$HOST_DATA_DIR" \ 
+  env CONTAINERS="$CONTAINERS" \
+  env TEMP_CONFIG_DIR="$TEMP_CONFIG_DIR" \
+  env POD="" \
+  sh "$TEMP_CONTAINERS_INIT_SCRIPT";
+
+  # Delete containers initialization script
+  echo "Deleting containers initialization script...";
+  rm "$TEMP_CONTAINERS_INIT_SCRIPT";
 
   ### Clear
 
