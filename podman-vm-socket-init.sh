@@ -25,6 +25,11 @@ podman_vm_socket_init() {
       echo "$(tput bold)$(tput setaf 1)Error: User name is not specified.$(tput sgr0)" && exit 1;
     fi
 
+    # Verify that the user ID is specified
+    if test ! -n "$USER_IS"; then
+      echo "$(tput bold)$(tput setaf 1)Error: User ID is not specified.$(tput sgr0)" && exit 1;
+    fi
+
     # Operating system
     OPERATING_SYSTEM=$(. /etc/os-release && echo "$ID");
 
@@ -39,24 +44,35 @@ podman_vm_socket_init() {
 
     elif test "$OPERATING_SYSTEM" = "ubuntu"; then
 
-      # The following commands must be run as the rootless user
-
-      # Verify script is run as the specified user
-      if test "$(id --user --name)" != "$USER_NAME"; then
-        echo "$(tput bold)$(tput setaf 1)Error: Socket initialization must be run as $USER_NAME user.$(tput sgr0)" && exit 1;
-      fi
-
       # Enable lingering (allows the user to run user-level systemd services even when not logged in)
       echo "Enabling lingering for user $USER_NAME...";
       loginctl enable-linger "$USER_NAME";
 
-      # Enable Podman socket in user context (the command must be run as the rootless user)
-      echo "Enabling Podman socket for user $USER_NAME...";
-      systemctl --user enable --now podman.socket;
+      # The XDR runtime directory and DBUS session bus address envinroment variables must be passed when the command is run by a different user
 
-      # Start Podman socket in user context (the command must be run as the rootless user)
+      # Enable Podman socket in user context
+      echo "Enabling Podman socket for user $USER_NAME...";
+
+      sudo --user "$USER_NAME" \
+        env XDG_RUNTIME_DIR="/run/user/$USER_ID" \
+        env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$USER_ID/bus" \
+        systemctl --user enable podman.socket;
+
+      # Start Podman socket in user context
       echo "Starting Podman socket for user $USER_NAME...";
-      systemctl --user start podman.socket;
+
+      sudo --user "$USER_NAME" \
+        env XDG_RUNTIME_DIR="/run/user/$USER_ID" \
+        env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$USER_ID/bus" \
+        systemctl --user start podman.socket;
+
+      # Display Podman socket status
+      echo "$(tput bold)Podman socket status:$(tput sgr0)";
+
+      sudo --user "$USER_NAME" \
+        env XDG_RUNTIME_DIR="/run/user/$USER_ID" \
+        env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$USER_ID/bus" \
+        systemctl --user status podman.socket;
 
       echo "$(tput bold)$(tput setaf 2)Podman socket initialization completed.$(tput sgr0)";
 
