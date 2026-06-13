@@ -280,10 +280,8 @@ podman_vm_init() {
 
   loginctl enable-linger "$USER_NAME";
 
-  su - "$USER_NAME";
-
   # Execute Podman initialization script as the Podman user (passes domain, host data directory, username, GitHub repository, GitHub repository access token, pods, containers, and secrets as environment variables to the script)
-  sudo --user "$USER_NAME" \
+  su - "$USER_NAME" -c \
     env DOMAIN="$DOMAIN" \
     env HOST_DATA_DIR="$HOST_DATA_DIR" \
     env USER_NAME="$USER_NAME" \
