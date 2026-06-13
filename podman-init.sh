@@ -62,7 +62,7 @@ podman_init() {
 
   # Download GitHub repository
   echo "Downloading configuration files from GitHub repository...";
-  git clone "$GITHUB_REPO_TOKEN@$GITHUB_REPO" "$TEMP_CONFIG_DIR";
+  git clone "https://$GITHUB_REPO_TOKEN@$GITHUB_REPO" "$TEMP_CONFIG_DIR";
 
   echo "$(tput bold)$(tput setaf 2)Downloading configuration files completed.$(tput sgr0)";
 
