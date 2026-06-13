@@ -2,7 +2,7 @@
 
 # Podman Initialization Shell Script
 # Copyright ©️ 2025-2026 Marco Barrios. All rights reserved.
-# Usage: chmod +x podman-init.sh && sh podman-init.sh;
+# Usage: chmod +x podman-init.sh && sh podman-init.sh <configuration file path>;
 
 # Enable strict error handling (the script will stop immediately if a variable is not set or a command fails)
 set -eu;
