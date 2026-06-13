@@ -39,6 +39,10 @@ podman_socket_init() {
 
     elif test "$OPERATING_SYSTEM" = "ubuntu"; then
 
+      # Create user systemd configuration directory
+      echo "Creating user systemd configuration directory...";
+      mkdir -p "$HOME/.config/systemd/user";
+
       # Enable Podman socket in user context (the command must be run as the rootless user)
       echo "Enabling Podman socket for user $USER_NAME...";
       systemctl --user enable podman.socket;
